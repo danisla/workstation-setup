@@ -27,6 +27,7 @@
     vars:
       packages:
       - gnupg
+      - pinentry-gtk2
       - tmux
       - htop
       - autossh
@@ -47,7 +48,7 @@
     tags: ["gnupg"]
     lineinfile:
       dest: "{{ ansible_env.HOME }}/.gnupg/gpg-agent.conf"
-      line: "pinentry-program /usr/bin/pinentry-curses"
+      line: "pinentry-program /usr/bin/pinentry-gtk-2"
       regex: "^pinentry-program.*"
   
   - name: gpg tty
