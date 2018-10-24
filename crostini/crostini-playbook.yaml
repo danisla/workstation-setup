@@ -41,7 +41,9 @@
       - file
       - dnsutils
       - wget
+      - python-pip
       - python3
+      - python3-pip
       - asciinema
       
   - name: gpg-agent pinentry program
