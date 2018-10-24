@@ -9,6 +9,7 @@
     skaffold_version: v0.15.1
     kustomize_version: 1.0.8
     helm_version: 2.11.0
+    terraform_version: 0.11.10
   tasks:
   - name: update apt cache and dist
     tags: ["dist"]
@@ -114,6 +115,19 @@
   ### End vscode ###
 
   ### Begin golang ###
+  - name: check go install
+    tags: ["go"]
+    stat:
+      path: /usr/local/go/bin/go
+    register: go_st
+
+  - name: check go version
+    tags: ["go"]
+    shell: go version
+    register: go_ver
+    changed_when: no
+    when: go_st.stat.exists
+
   - name: install golang
     tags: ["go"]
     become: yes
@@ -121,7 +135,7 @@
       src: https://dl.google.com/go/go{{ golang_version }}.linux-amd64.tar.gz
       dest: /usr/local/
       remote_src: yes
-      creates: /usr/local/go
+    when: not go_st.stat.exists or golang_version not in go_ver.stdout
 
   - name: add go to path
     tags: ["go"]
@@ -256,6 +270,19 @@
       dest: /usr/local/bin/skaffold
       mode: 0755
   
+  - name: check helm install
+    tags: ["kube", "helm"]
+    stat:
+      path: /usr/local/bin/linux-amd64/helm
+    register: helm_st
+
+  - name: check helm version
+    tags: ["kube", "helm"]
+    shell: helm version -c
+    register: helm_ver
+    changed_when: no
+    when: helm_st.stat.exists
+
   - name: install helm
     tags: ["kube", "helm"]
     become: yes
@@ -263,7 +290,7 @@
       src: https://storage.googleapis.com/kubernetes-helm/helm-v{{ helm_version }}-linux-amd64.tar.gz
       dest: /usr/local/bin/
       remote_src: yes
-      creates: /usr/local/bin/linux-amd64/helm
+    when: not helm_st.stat.exists or helm_version not in helm_ver.stdout
 
   - name: link helm
     tags: ["kube", "helm"]
@@ -276,12 +303,25 @@
   ### End kubectl ###
 
   ### Begin terraform
+  - name: check terraform install
+    tags: ["terraform"]
+    stat:
+      path: /usr/local/bin/terraform
+    register: terraform_st
+  
+  - name: check terraform version
+    tags: ["terraform"]
+    shell: terraform version | head -1
+    register: terraform_ver
+    changed_when: no
+    when: terraform_st.stat.exists
+
   - name: install terraform
     tags: ["terraform"]
     become: yes
     unarchive:
-      src: https://releases.hashicorp.com/terraform/0.11.8/terraform_0.11.8_linux_amd64.zip
+      src: https://releases.hashicorp.com/terraform/{{ terraform_version }}/terraform_{{ terraform_version }}_linux_amd64.zip
       dest: /usr/local/bin/
       remote_src: yes
-      creates: /usr/local/bin/terraform
+    when: not terraform_st.stat.exists or terraform_version not in terraform_ver.stdout
   ### End terraform
