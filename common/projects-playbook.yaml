@@ -1,0 +1,147 @@
+# Ansible playbook for project development
+# Requires ansible 2.4+
+# Prerequisites:
+#   - copy ~/.github_credentials from drive backup to ~/
+
+- hosts: localhost
+  vars:
+    projects: "{{ ansible_env.HOME }}/projects"
+    update_repo: no
+    ### Go source repos ###
+    go_src:
+    - name: terraform-operator
+      owner: danisla
+      fork: danisla
+    - name: appdb-operator
+      owner: danisla
+      fork: danisla
+    - name: stateful-site-operator
+      owner: danisla
+      fork: danisla
+    - name: cloud-endpoints-controller
+      owner: danisla
+      fork: danisla
+    ### Other repos ###
+    other_repos:
+    - name: kubefunc
+      owner: danisla
+      fork: danisla
+    tf_google_repos:
+    ### GoogleCloudPlatform owned repos ###
+    - name: nat-gateway
+      owner: GoogleCloudPlatform
+      fork: danisla
+    - name: examples
+      owner: GoogleCloudPlatform
+      fork: danisla
+    - name: lb-http
+      owner: GoogleCloudPlatform
+      fork: danisla
+    - name: managed-instance-group
+      owner: GoogleCloudPlatform
+      fork: danisla
+    - name: vault
+      owner: GoogleCloudPlatform
+      fork: danisla
+    - name: k8s-gce
+      owner: GoogleCloudPlatform
+      fork: danisla
+    - name: sql-db
+      owner: GoogleCloudPlatform
+      fork: danisla
+    - name: lb-internal
+      owner: GoogleCloudPlatform
+      fork: danisla
+    - name: lb
+      owner: GoogleCloudPlatform
+      fork: danisla
+    ### terraform-google-modules owned repos ###
+    - name: endpoints-dns
+      owner: terraform-google-modules
+      fork: danisla
+    ### Self owned repos ###
+    - name: elasticsearch
+      owner: danisla
+      fork: danisla
+    - name: gsutil-acl
+      owner: danisla
+      fork: danisla
+    - name: named-ports
+      owner: danisla
+      fork: danisla
+    - name: shared-vpc
+      owner: danisla
+      fork: danisla
+    - name: gke-drupal
+      owner: danisla
+      fork: danisla
+    - name: bind-server
+      owner: danisla
+      fork: danisla
+      
+  tasks:
+  ###
+  # Terraform google module source repos
+  ###
+  - name: forked terraform google modules
+    tags: ["fork"]
+    git:
+      repo: https://github.com/{{ item.fork }}/terraform-google-{{ item.name }}.git
+      dest: "{{ projects }}/terraform-google-modules/terraform-google-{{ item.name }}"
+      update: "{{ update_repo }}"
+    with_items: "{{ tf_google_repos }}"
+  
+  - name: owner upstream terraform google modules
+    tags: ["owner"]
+    lineinfile:
+      path: "{{ projects }}/terraform-google-modules/terraform-google-{{ item.name }}/.git/config"
+      line: |
+        [remote "owner"]
+          url = https://github.com/{{ item.owner }}/terraform-google-{{ item.name }}.git
+          fetch = +refs/heads/*:refs/remotes/owner/*
+    with_items: "{{ tf_google_repos }}"
+    when: "item.owner != item.fork"
+  
+  ###
+  # Other github repos
+  ###
+  - name: other repos
+    tags: ["other", "fork"]
+    git:
+      repo: https://github.com/{{ item.fork }}/{{ item.name }}.git
+      dest: "{{ projects }}/{{ item.name }}"
+      update: "{{ update_repo }}"
+    with_items: "{{ other_repos }}"
+  
+  - name: owner upstream other repos
+    tags: ["other","owner"]
+    lineinfile:
+      path: "{{ projects }}/{{ item.name }}/.git/config"
+      line: |
+        [remote "owner"]
+          url = https://github.com/{{ item.owner }}/{{ item.name }}.git
+          fetch = +refs/heads/*:refs/remotes/owner/*
+    with_items: "{{ other_repos }}"
+    when: "item.owner != item.fork"
+  
+  ###
+  # Go source repos
+  ###
+  - name: go src repos
+    tags: ["go", "fork"]
+    git:
+      repo: https://github.com/{{ item.fork }}/{{ item.name }}.git
+      dest: "{{ ansible_env.HOME }}/go/src/github.com/{{ item.owner }}/{{ item.name }}"
+      update: "{{ update_repo }}"
+    with_items: "{{ go_src }}"
+  
+  - name: owner upstream go src repos
+    tags: ["go","owner"]
+    lineinfile:
+      path: "{{ ansible_env.HOME }}/go/src/github.com/{{ item.owner }}/{{ item.name }}/.git/config"
+      line: |
+        [remote "owner"]
+          url = https://github.com/{{ item.owner }}/{{ item.name }}.git
+          fetch = +refs/heads/*:refs/remotes/owner/*
+    with_items: "{{ go_src }}"
+    when: "item.owner != item.fork"
