@@ -1,0 +1,19 @@
+- name: ansible apt key
+  become: yes
+  apt_key:
+    keyserver: keyserver.ubuntu.com
+    id: 93C4A3FD7BB9C367
+    state: present
+
+- name: ansible apt repo
+  become: yes
+  apt_repository:
+    repo: deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main
+    state: present
+
+- name: install updated ansible
+  become: yes
+  apt:
+    update_cache: yes
+    state: latest
+    name: ansible

@@ -1,0 +1,35 @@
+- name: add docker sdk repo apt key
+  become: yes
+  apt_key:
+    url: https://download.docker.com/linux/debian/gpg
+    state: present
+
+- name: add docker deb repo
+  become: yes
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/debian {{ debian_release }} stable
+    state: present
+
+- name: install docker-ce
+  become: yes
+  apt:
+    update_cache: yes
+    state: latest
+    name: docker-ce
+
+- name: add user to docker group
+  become: yes
+  user:
+    name: "{{ ansible_env.USER }}"
+    append: yes
+    groups: docker
+
+- name: clone dockerfiles repo 
+  git:
+    repo: https://github.com/danisla/dockerfiles.git
+    dest: "{{ projects }}/dockerfiles"
+
+- name: install dockerfunc
+  lineinfile:
+    dest: "{{ ansible_env.HOME }}/.bashrc"
+    line: "source {{ projects }}/dockerfiles/.dockerfunc.bash"

@@ -1,0 +1,21 @@
+# Ansible playbook for rodete workstation
+- hosts: localhost
+  roles:
+  - role: common
+    tags: common
+  - role: debian
+    tags: debian
+  - role: gnupg
+    tags: gnupg
+  - role: vscode
+    tags: vscode
+  - role: golang
+    tags: golang
+  - role: gcloud
+    tags: gcloud
+  - role: docker
+    tags: docker
+  - role: kube
+    tags: kube
+  - role: terraform
+    tags: terraform

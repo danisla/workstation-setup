@@ -1,0 +1,28 @@
+- name: add gcloud sdk repo apt key
+  become: yes
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg 
+    state: present
+
+- name: add gcloud sdk deb repo
+  become: yes
+  apt_repository:
+    repo: deb http://packages.cloud.google.com/apt cloud-sdk-{{ debian_release }} main
+    state: present
+
+- name: install gcloud sdk
+  become: yes
+  apt:
+    update_cache: yes
+    state: latest
+    name: google-cloud-sdk
+
+- name: clone gcloudfunc repo 
+  git:
+    repo: https://github.com/danisla/gcloudfunc.git
+    dest: "{{ projects }}/gcloudfunc"
+
+- name: install gcloudfunc
+  lineinfile:
+    dest: "{{ ansible_env.HOME }}/.bashrc"
+    line: "source {{ projects }}/gcloudfunc/gcloudfunc.bash"

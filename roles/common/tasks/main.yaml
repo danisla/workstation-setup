@@ -1,0 +1,4 @@
+- name: create projects dir
+  file:
+    path: "{{ projects }}"
+    state: directory

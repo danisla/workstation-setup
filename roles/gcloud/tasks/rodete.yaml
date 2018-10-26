@@ -1,0 +1,4 @@
+- name: install google cloud sdk
+  apt:
+    name: google-cloud-sdk
+    state: latest

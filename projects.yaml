@@ -26,6 +26,9 @@
     - name: kubefunc
       owner: danisla
       fork: danisla
+    - name: dockerfiles
+      owner: danisla
+      fork: danisla
     tf_google_repos:
     ### GoogleCloudPlatform owned repos ###
     - name: nat-gateway
@@ -93,14 +96,12 @@
   
   - name: owner upstream terraform google modules
     tags: ["owner"]
-    lineinfile:
-      path: "{{ projects }}/terraform-google-modules/terraform-google-{{ item.name }}/.git/config"
-      line: |
-        [remote "owner"]
-          url = https://github.com/{{ item.owner }}/terraform-google-{{ item.name }}.git
-          fetch = +refs/heads/*:refs/remotes/owner/*
+    shell: (git remote -v | egrep -q '^owner') || git remote add owner https://github.com/{{ item.owner }}/terraform-google-{{ item.name }}.git
+    args:
+      chdir: "{{ projects }}/terraform-google-modules/terraform-google-{{ item.name }}"
     with_items: "{{ tf_google_repos }}"
     when: "item.owner != item.fork"
+    changed_when: no
   
   ###
   # Other github repos
@@ -115,14 +116,12 @@
   
   - name: owner upstream other repos
     tags: ["other","owner"]
-    lineinfile:
-      path: "{{ projects }}/{{ item.name }}/.git/config"
-      line: |
-        [remote "owner"]
-          url = https://github.com/{{ item.owner }}/{{ item.name }}.git
-          fetch = +refs/heads/*:refs/remotes/owner/*
+    shell: (git remote -v | egrep -q '^owner') || git remote add owner https://github.com/{{ item.owner }}/{{ item.name }}.git
+    args:
+      chdir: "{{ projects }}/{{ item.name }}"
     with_items: "{{ other_repos }}"
     when: "item.owner != item.fork"
+    changed_when: no
   
   ###
   # Go source repos
@@ -137,11 +136,9 @@
   
   - name: owner upstream go src repos
     tags: ["go","owner"]
-    lineinfile:
-      path: "{{ ansible_env.HOME }}/go/src/github.com/{{ item.owner }}/{{ item.name }}/.git/config"
-      line: |
-        [remote "owner"]
-          url = https://github.com/{{ item.owner }}/{{ item.name }}.git
-          fetch = +refs/heads/*:refs/remotes/owner/*
+    shell: (git remote -v | egrep -q '^owner') || git remote add owner https://github.com/{{ item.owner }}/{{ item.name }}.git
+    args:
+      chdir: "{{ ansible_env.HOME }}/go/src/github.com/{{ item.owner }}/{{ item.name }}"
     with_items: "{{ go_src }}"
     when: "item.owner != item.fork"
+    changed_when: no

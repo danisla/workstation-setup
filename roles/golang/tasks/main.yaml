@@ -1,0 +1,41 @@
+- name: check go install
+  stat:
+    path: /usr/local/go/bin/go
+  register: go_st
+
+- name: check go version
+  shell: /usr/local/go/bin/go version
+  register: go_ver
+  changed_when: no
+  when: go_st.stat.exists
+
+- name: install golang
+  become: yes
+  unarchive:
+    src: https://dl.google.com/go/go{{ golang_version }}.linux-amd64.tar.gz
+    dest: /usr/local/
+    remote_src: yes
+  when: not go_st.stat.exists or golang_version not in go_ver.stdout
+
+- name: add go to path
+  lineinfile:
+    dest: "{{ ansible_env.HOME }}/.bashrc"
+    line: "PATH=${PATH}:/usr/local/go/bin"
+
+- name: create GOPATH
+  file:
+    path: "{{ ansible_env.HOME }}/go"
+    state: directory
+
+- name: add GOPATH to bashrc
+  lineinfile:
+    dest: "{{ ansible_env.HOME }}/.bashrc"
+    line: "GOPATH={{ ansible_env.HOME}}/go"
+
+- name: install dep
+  tags: ["go","dep"]
+  become: yes
+  get_url:
+    url: https://github.com/golang/dep/releases/download/{{ dep_version }}/dep-linux-amd64
+    dest: /usr/local/go/bin/dep
+    mode: 0755

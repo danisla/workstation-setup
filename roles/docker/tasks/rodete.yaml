@@ -1,0 +1,4 @@
+- name: remove old docker-engine
+  apt:
+    name: docker-engine
+    state: absent

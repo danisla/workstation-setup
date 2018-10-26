@@ -1,0 +1,46 @@
+- name: install kubectl
+  become: yes
+  get_url:
+    url: https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl
+    dest: /usr/local/bin/kubectl
+    mode: 0755
+
+- name: install kustomize
+  become: yes
+  get_url:
+    url: https://github.com/kubernetes-sigs/kustomize/releases/download/v1.0.8/kustomize_{{ kustomize_version }}_linux_amd64
+    dest: /usr/local/bin/kustomize
+    mode: 0755
+
+- name: install skaffold
+  become: yes
+  get_url:
+    url: https://github.com/GoogleContainerTools/skaffold/releases/download/{{ skaffold_version }}/skaffold-linux-amd64
+    dest: /usr/local/bin/skaffold
+    mode: 0755
+
+- name: check helm install
+  stat:
+    path: /usr/local/bin/linux-amd64/helm
+  register: helm_st
+
+- name: check helm version
+  shell: helm version -c
+  register: helm_ver
+  changed_when: no
+  when: helm_st.stat.exists
+
+- name: install helm
+  become: yes
+  unarchive:
+    src: https://storage.googleapis.com/kubernetes-helm/helm-v{{ helm_version }}-linux-amd64.tar.gz
+    dest: /usr/local/bin/
+    remote_src: yes
+  when: not helm_st.stat.exists or helm_version not in helm_ver.stdout
+
+- name: link helm
+  become: yes
+  file:
+    src: /usr/local/bin/linux-amd64/helm
+    dest: /usr/local/bin/helm
+    state: link
