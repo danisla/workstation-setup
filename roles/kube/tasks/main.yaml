@@ -1,9 +1,22 @@
+- name: check kubectl install
+  stat:
+    path: /usr/local/bin/kubectl
+  register: kubectl_st
+
+- name: check kubectl version
+  shell: /usr/local/bin/kubectl version --client --short
+  register: kubectl_ver
+  changed_when: no
+  when: kubectl_st.stat.exists
+
 - name: install kubectl
   become: yes
   get_url:
     url: https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_version }}/bin/linux/amd64/kubectl
     dest: /usr/local/bin/kubectl
     mode: 0755
+    force: yes
+  when: not kubectl_st.stat.exists or kubectl_version not in kubectl_ver.stdout
 
 - name: install kustomize
   become: yes
