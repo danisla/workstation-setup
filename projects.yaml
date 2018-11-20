@@ -26,6 +26,9 @@
     - name: kubefunc
       owner: danisla
       fork: danisla
+    - name: gcloudfunc
+      owner: danisla
+      fork: danisla
     - name: dockerfiles
       owner: danisla
       fork: danisla
