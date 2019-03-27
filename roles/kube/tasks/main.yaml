@@ -18,12 +18,36 @@
     force: yes
   when: not kubectl_st.stat.exists or kubectl_version not in kubectl_ver.stdout
 
+- name: check kustomize install
+  stat:
+    path: /usr/local/bin/kustomize
+  register: kustomize_st
+
+- name: check kustomize version
+  shell: kustomize version
+  register: kustomize_ver
+  changed_when: no
+  when: kustomize_st.stat.exists
+
 - name: install kustomize
   become: yes
   get_url:
-    url: https://github.com/kubernetes-sigs/kustomize/releases/download/v1.0.8/kustomize_{{ kustomize_version }}_linux_amd64
+    url: https://github.com/kubernetes-sigs/kustomize/releases/download/v{{ kustomize_version}}/kustomize_{{ kustomize_version }}_linux_amd64
     dest: /usr/local/bin/kustomize
     mode: 0755
+    force: yes
+  when: not kustomize_st.stat.exists or kustomize_version not in kustomize_ver.stdout
+
+- name: check skaffold install
+  stat:
+    path: /usr/local/bin/skaffold
+  register: skaffold_st
+
+- name: check skaffold version
+  shell: skaffold version
+  register: skaffold_ver
+  changed_when: no
+  when: skaffold_st.stat.exists
 
 - name: install skaffold
   become: yes
@@ -31,6 +55,8 @@
     url: https://github.com/GoogleContainerTools/skaffold/releases/download/{{ skaffold_version }}/skaffold-linux-amd64
     dest: /usr/local/bin/skaffold
     mode: 0755
+    force: yes
+  when: not skaffold_st.stat.exists or skaffold_version not in skaffold_ver.stdout
 
 - name: check helm install
   stat:
